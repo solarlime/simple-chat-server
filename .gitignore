@@ -119,3 +119,6 @@ dist
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+# Project database
+db.json

@@ -47,7 +47,7 @@ app.use(async (ctx, next) => {
 
 router.get(routes.fetch, rest.fetch);
 router.post(routes.add, rest.add);
-router.get(routes.delete, rest.delete);
+router.post(routes.delete, rest.delete);
 router.get(routes.connect, ws.connect);
 router.get(routes.disconnect, ws.disconnect);
 

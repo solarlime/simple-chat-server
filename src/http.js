@@ -5,20 +5,38 @@ const dbPath = path.resolve('db.json');
 
 /**
  * A promise which wraps the reading events
- * @param readable
  * @returns {Promise<unknown>}
  */
-function readingProcess(readable) {
+function readingProcess() {
   return new Promise((resolve, reject) => {
-    const data = [];
-    readable.on('data', (chunk) => {
-      data.push(chunk);
+    // At first, check if the file exists
+    fs.stat(dbPath, (err) => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          // Create a new one
+          const emptyJson = '{"name":"simple-chat-db","data":[]}';
+          fs.writeFileSync(dbPath, emptyJson);
+          resolve(Buffer.from(emptyJson));
+        } else {
+          reject(err);
+        }
+      } else {
+        const readable = fs.createReadStream(dbPath);
+        const data = [];
+        readable.on('data', (chunk) => {
+          data.push(chunk);
+        });
+        readable.on('end', () => {
+          const buffer = Buffer.concat(data);
+          readable.destroy();
+          resolve(buffer);
+        });
+        readable.on('error', (e) => {
+          readable.destroy();
+          reject(e);
+        });
+      }
     });
-    readable.on('end', () => {
-      const buffer = Buffer.concat(data);
-      resolve(buffer);
-    });
-    readable.on('error', (e) => reject(e));
   });
 }
 
@@ -29,26 +47,26 @@ function readingProcess(readable) {
  * @returns {Promise<ReadableStream<Uint8Array>>}
  */
 async function addOrDie(ctx, callback) {
-  const readable = fs.createReadStream(dbPath);
-  const buffer = await readingProcess(readable);
+  const buffer = await readingProcess();
   const json = JSON.parse(buffer);
   await callback(json, ctx.request.body);
   console.log(json.data);
   const writable = fs.createWriteStream(dbPath);
-  writable.write(Buffer.from(JSON.stringify(json)), () => console.log('Writing ended!'));
+  writable.write(Buffer.from(JSON.stringify(json)), (err) => {
+    if (!err) console.log('Writing ended!');
+    writable.destroy();
+  });
   return ctx.request.body;
 }
 
 module.exports = {
-
   /**
    * A wrapper for a reading function
    * @returns {Promise<{data, status: string}|{data: any, status: string}>}
    */
   async fetch() {
-    const readable = fs.createReadStream(dbPath);
     try {
-      const result = await readingProcess(readable);
+      const result = await readingProcess();
       return { status: 'Read', data: JSON.parse(result) };
     } catch (e) {
       return { status: 'Not read', data: e.message };

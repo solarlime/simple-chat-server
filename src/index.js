@@ -3,13 +3,15 @@ const Koa = require('koa');
 const Router = require('@koa/router');
 const koaBody = require('koa-body');
 const koaCors = require('@koa/cors');
+const websockify = require('koa-websocket');
 const rest = require('./http');
 const ws = require('./ws');
 
 dotenv.config();
-const app = new Koa();
+const app = websockify(new Koa());
 const prefix = '/simple-chat';
-const router = new Router({ prefix });
+const restRouter = new Router({ prefix });
+const wsRouter = new Router({ prefix });
 const { PORT } = process.env;
 
 function routesF() {
@@ -40,18 +42,23 @@ app.use(koaBody({
 }));
 
 app.use(async (ctx, next) => {
-  console.log('main');
+  console.log('http');
   const res = await next();
   ctx.response.body = res;
 });
 
-router.get(routes.fetch, rest.fetch);
-router.post(routes.add, rest.add);
-router.post(routes.delete, rest.delete);
-router.get(routes.connect, ws.connect);
-router.get(routes.disconnect, ws.disconnect);
+app.ws.use(async (ctx, next) => {
+  console.log('ws');
+  const res = await next();
+  ctx.response.body = res;
+});
 
-app.use(router.routes())
-  .use(router.allowedMethods());
+restRouter.get(routes.fetch, rest.fetch);
+restRouter.post(routes.add, rest.add);
+restRouter.post(routes.delete, rest.delete);
+wsRouter.get(routes.connect, ws.connect);
+
+app.use(restRouter.routes()).use(restRouter.allowedMethods());
+app.ws.use(wsRouter.routes()).use(wsRouter.allowedMethods());
 
 app.listen(PORT, () => { console.log(`Server is working on ${PORT}`); });

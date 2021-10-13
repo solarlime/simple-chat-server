@@ -56,7 +56,7 @@ app.ws.use(async (ctx, next) => {
 restRouter.get(routes.fetch, rest.fetch);
 restRouter.post(routes.add, rest.add);
 restRouter.post(routes.delete, rest.delete);
-wsRouter.get(routes.connect, ws.connect);
+wsRouter.get(routes.connect, (ctx) => ws.connect(ctx, app));
 
 app.use(restRouter.routes()).use(restRouter.allowedMethods());
 app.ws.use(wsRouter.routes()).use(wsRouter.allowedMethods());

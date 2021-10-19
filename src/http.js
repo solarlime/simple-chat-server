@@ -14,7 +14,7 @@ function readingProcess() {
       if (err) {
         if (err.code === 'ENOENT') {
           // Create a new one
-          const emptyJson = '{"name":"simple-chat-db","data":[]}';
+          const emptyJson = '{"dbname":"simple-chat-db","data":[]}';
           fs.writeFileSync(dbPath, emptyJson);
           resolve(Buffer.from(emptyJson));
         } else {
@@ -50,13 +50,13 @@ async function addOrDie(ctx, callback) {
   const buffer = await readingProcess();
   const json = JSON.parse(buffer);
   await callback(json, ctx.request.body);
-  console.log(json.data);
+  console.log('Add or die:', json.data);
   const writable = fs.createWriteStream(dbPath);
   writable.write(Buffer.from(JSON.stringify(json)), (err) => {
     if (!err) console.log('Writing ended!');
     writable.destroy();
   });
-  return ctx.request.body;
+  return json.data;
 }
 
 module.exports = {
@@ -81,11 +81,11 @@ module.exports = {
   async add(ctx) {
     try {
       const result = await addOrDie(ctx, (json, body) => new Promise((resolve, reject) => {
-        const isAlreadyAdded = json.data.find((item) => item.userName === body.userName);
+        const isAlreadyAdded = json.data.find((item) => item.name === body.name);
         if (!isAlreadyAdded) {
           resolve(json.data.push(body));
         } else {
-          reject(new Error(`User ${body.userName}'s already added`));
+          reject(new Error(`User ${body.name}'s already added`));
         }
       }));
       return { status: 'Added', data: result };
@@ -102,13 +102,13 @@ module.exports = {
   async delete(ctx) {
     try {
       const result = await addOrDie(ctx, (json, body) => new Promise((resolve, reject) => {
-        const index = json.data.findIndex((item) => item.userName === body.userName);
+        const index = json.data.findIndex((item) => item.name === body.name);
         if (index !== -1) {
           resolve(json.data.splice(
-            json.data.findIndex((item) => item.userName === body.userName), 1,
+            json.data.findIndex((item) => item.name === body.name), 1,
           ));
         } else {
-          reject(new Error(`No user ${body.userName} found`));
+          reject(new Error(`No user ${body.name} found`));
         }
       }));
       return { status: 'Deleted', data: result };

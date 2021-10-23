@@ -2,16 +2,16 @@ const https = require('http');
 
 /**
  * A wrapper for a deleting request
- * @param user
+ * @param usersArray
  * @returns {Promise<unknown>}
  */
-function deleteFromDB(user) {
+function deleteFromDB(usersArray) {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify({ name: user });
+    const data = JSON.stringify(usersArray);
     const options = {
       hostname: 'localhost',
       port: process.env.PORT,
-      path: '/simple-chat/delete',
+      path: '/simple-chat/delete/',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -20,8 +20,6 @@ function deleteFromDB(user) {
     };
 
     const request = https.request(options, (response) => {
-      console.log('statusCode: ', response.statusCode);
-
       response.on('data', (d) => {
         try {
           resolve(JSON.parse(d));
@@ -82,16 +80,21 @@ module.exports = {
       sendMessageAboutDisconnection(wss, user);
 
       // Then make a request to delete user from a db
-      const rest = await deleteFromDB(user);
-      rest.data.forEach(async (item) => {
+      try {
+        const rest = await deleteFromDB([{ name: user }]);
+        const usersArray = [];
         // There may be incorrect disconnections. Fix them!
-        if (!clients.has(item.name)) {
-          console.log(`An obsolete user was found: ${item.name}`);
-          const newRest = await deleteFromDB(item.name);
-          console.log(newRest);
-          sendMessageAboutDisconnection(wss, item.name);
+        for (const item of rest.data) {
+          if (!clients.has(item.name)) {
+            console.log(`An obsolete user was found: ${item.name}`);
+            usersArray.push({ name: item.name });
+            sendMessageAboutDisconnection(wss, item.name);
+          }
         }
-      });
+        await deleteFromDB(usersArray);
+      } catch (e) {
+        console.log('Something happened during a deleting process');
+      }
     });
   },
 };

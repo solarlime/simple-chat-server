@@ -20,14 +20,12 @@ function routesF() {
     add: '/add',
     delete: '/delete',
     connect: '/connect',
-    disconnect: '/disconnect',
   };
   return {
     fetch: basis.fetch,
     add: basis.add,
     delete: basis.delete,
     connect: basis.connect,
-    disconnect: basis.disconnect,
   };
 }
 const routes = routesF();
@@ -42,13 +40,13 @@ app.use(koaBody({
 }));
 
 app.use(async (ctx, next) => {
-  console.log('http');
+  console.log(`HTTP request detected: ${ctx.request.path}`);
   const res = await next();
   ctx.response.body = res;
 });
 
 app.ws.use(async (ctx, next) => {
-  console.log('ws');
+  console.log(`WS request detected: ${ctx.request.path}`);
   const res = await next();
   ctx.response.body = res;
 });

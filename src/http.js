@@ -50,11 +50,13 @@ async function addOrDie(ctx, callback) {
   const buffer = await readingProcess();
   const json = JSON.parse(buffer);
   await callback(json, ctx.request.body);
-  console.log('Add or die:', json.data);
   const writable = fs.createWriteStream(dbPath);
-  writable.write(Buffer.from(JSON.stringify(json)), (err) => {
-    if (!err) console.log('Writing ended!');
-    writable.destroy();
+  await new Promise((resolve) => {
+    writable.write(Buffer.from(JSON.stringify(json)), (err) => {
+      if (!err) console.log('Writing ended!');
+      writable.destroy();
+      resolve();
+    });
   });
   return json.data;
 }
@@ -102,14 +104,14 @@ module.exports = {
   async delete(ctx) {
     try {
       const result = await addOrDie(ctx, (json, body) => new Promise((resolve, reject) => {
-        const index = json.data.findIndex((item) => item.name === body.name);
-        if (index !== -1) {
-          resolve(json.data.splice(
-            json.data.findIndex((item) => item.name === body.name), 1,
-          ));
-        } else {
-          reject(new Error(`No user ${body.name} found`));
-        }
+        body.forEach((bodyItem) => {
+          const index = json.data.findIndex((item) => item.name === bodyItem.name);
+          if (index !== -1) {
+            resolve(json.data.splice(index, 1));
+          } else {
+            reject(new Error(`No user ${bodyItem.name} found`));
+          }
+        });
       }));
       return { status: 'Deleted', data: result };
     } catch (e) {

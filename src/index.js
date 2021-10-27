@@ -17,14 +17,10 @@ const { PORT } = process.env;
 function routesF() {
   const basis = {
     fetch: '/fetch',
-    add: '/add',
-    delete: '/delete',
     connect: '/connect',
   };
   return {
     fetch: basis.fetch,
-    add: basis.add,
-    delete: basis.delete,
     connect: basis.connect,
   };
 }
@@ -51,9 +47,7 @@ app.ws.use(async (ctx, next) => {
   ctx.response.body = res;
 });
 
-restRouter.get(routes.fetch, rest.fetch);
-restRouter.post(routes.add, rest.add);
-restRouter.post(routes.delete, rest.delete);
+restRouter.get(routes.fetch, (ctx) => rest.fetch(ctx, app));
 wsRouter.get(routes.connect, (ctx) => ws.connect(ctx, app));
 
 app.use(restRouter.routes()).use(restRouter.allowedMethods());

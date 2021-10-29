@@ -5,5 +5,5 @@ A backend side of a [simple-chat](https://github.com/solarlime/simple-chat) proj
 
 ### Based on:
 - Koa 2
-- MongoDB
+- Websockets (via koa-websocket)
 

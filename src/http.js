@@ -1,7 +1,9 @@
 module.exports = {
   /**
-   * A wrapper for a reading function
-   * @returns {Promise<{data, status: string}|{data: any, status: string}>}
+   * A reading function. Gets info from the websocket server
+   * @param ctx
+   * @param app
+   * @returns {Promise<{data, status: string}|{data: any[], status: string}>}
    */
   async fetch(ctx, app) {
     try {

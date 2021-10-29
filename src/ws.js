@@ -9,6 +9,12 @@ function sendMessageAboutDisconnection(wss, user) {
 }
 
 module.exports = {
+  /**
+   * A wrapper for dealing with websockets
+   * @param ctx
+   * @param app
+   * @returns {Promise<void>}
+   */
   async connect(ctx, app) {
     const wss = app.ws.server;
 

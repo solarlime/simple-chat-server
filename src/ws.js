@@ -18,6 +18,11 @@ module.exports = {
   async connect(ctx, app) {
     const wss = app.ws.server;
 
+    // Server disconnects after a minute of doing nothing. Prevent from it with PING messages
+    const pingInterval = setInterval(() => {
+      ctx.websocket.ping();
+    }, 30000);
+
     /**
      * A listener for messages: ordinary & service
      */
@@ -47,6 +52,7 @@ module.exports = {
       const user = ctx.websocket[symbol(ctx.websocket)];
       // Tell everybody that user disconnected
       sendMessageAboutDisconnection(wss, user);
+      clearInterval(pingInterval);
     });
   },
 };

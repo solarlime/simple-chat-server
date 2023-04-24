@@ -10,7 +10,10 @@ module.exports = {
       const wss = app.ws.server;
       const symbol = (ws) => Object.getOwnPropertySymbols(ws).find((sym) => sym.description === 'user');
       const clients = new Set();
-      wss.clients.forEach((ws) => clients.add({ name: ws[symbol(ws)] }));
+      wss.clients.forEach((ws) => {
+        const sym = symbol(ws);
+        if (sym) clients.add({ name: ws[sym] });
+      });
       return { status: 'Read', data: Array.from(clients) };
     } catch (e) {
       return { status: 'Not read', data: e.message };

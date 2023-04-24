@@ -28,7 +28,8 @@ module.exports = {
      */
     ctx.websocket.on('message', (message) => {
       try {
-        const parsed = JSON.parse(message.toString());
+        const stringified = message.toString();
+        const parsed = JSON.parse(stringified);
         if (!parsed.isMessage) {
           // If the connection is new, add a symbol to WS - an id for finding user when disconnects
           if (parsed.data.connect) {
@@ -36,7 +37,7 @@ module.exports = {
             ctx.websocket[user] = parsed.data.name;
           }
         }
-        wss.clients.forEach((ws) => ws.send(message));
+        wss.clients.forEach((ws) => ws.send(stringified));
       } catch (e) {
         ctx.websocket.send(e.message);
       }

@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 const Koa = require('koa');
 const Router = require('@koa/router');
-const koaBody = require('koa-body');
+const { koaBody } = require('koa-body');
 const koaCors = require('@koa/cors');
 const websockify = require('koa-websocket');
 const rest = require('./http');

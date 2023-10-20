@@ -20,7 +20,7 @@
   "homepage": "https://github.com/solarlime/simple-chat-server#readme",
   "devDependencies": {
     "esbuild": "^0.19.5",
-    "eslint": "^8.51.0",
+    "eslint": "^8.52.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.28.1",
     "nodemon": "^3.0.1"
@@ -33,5 +33,5 @@
     "koa-body": "^6.0.1",
     "koa-websocket": "^7.0.0"
   },
-  "packageManager": "yarn@3.4.1"
+  "packageManager": "yarn@3.6.4"
 }

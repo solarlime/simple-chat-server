@@ -10,7 +10,6 @@ on:
 
 env:
   DEPLOY_PATH: /var/www
-  BUILD_SCRIPT_OUTPUT: dist
   GITHUB_REPO: simple-chat-server
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -23,7 +22,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -53,7 +52,7 @@ jobs:
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           key: ${{ secrets.DEPLOY_SERVER_SSH }}
-          source: "./package.json, ./yarn.lock, ./.yarn, ./.yarnrc.yml, ./dist"
+          source: "./package.json, ./yarn.lock, ./dist, Dockerfile"
           target: ${{ env.DEPLOY_PATH }}/${{ env.GITHUB_REPO }}
 
       - name: Resolving dependencies & Restarting
@@ -65,12 +64,9 @@ jobs:
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           script: |
             cd ${{ env.DEPLOY_PATH }}/${{ env.GITHUB_REPO }}
-            rm -rf node_modules
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            yarn install --immutable
-            cd ${{ env.DEPLOY_PATH }}
-            pm2 reload ecosystem.config.js --only ${{ env.GITHUB_REPO }}
+            docker buildx build -t ${{ env.GITHUB_REPO }} .
+            docker container stop ${{ env.GITHUB_REPO }}
+            PORT=${{ secrets.ENV_PORT }} docker run --name ${{ env.GITHUB_REPO }} --rm -d -p ${{ secrets.ENV_PORT }}:${{ secrets.ENV_PORT }} -e PORT ${{ env.GITHUB_REPO }}
 
       - name: preview-url
         run: |

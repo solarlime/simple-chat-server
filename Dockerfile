@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 
 ARG yarn_version=3.6.4
+ARG port
 RUN echo "nodeLinker: node-modules" > .yarnrc.yml \
     && corepack enable \
     && yarn set version $yarn_version \
@@ -13,7 +14,7 @@ RUN echo "nodeLinker: node-modules" > .yarnrc.yml \
 
 COPY ./dist ./dist
 
-EXPOSE 3002
+EXPOSE $port
 
 # Start the app using serve command
 ENTRYPOINT [ "node", "/app/dist/bundle.js" ]

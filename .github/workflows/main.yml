@@ -52,7 +52,7 @@ jobs:
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           key: ${{ secrets.DEPLOY_SERVER_SSH }}
-          source: "./package.json, ./yarn.lock, ./dist, Dockerfile"
+          source: "./package.json, ./yarn.lock, ./dist, ./Dockerfile"
           target: ${{ env.DEPLOY_PATH }}/${{ env.GITHUB_REPO }}
 
       - name: Resolving dependencies & Restarting
@@ -64,9 +64,14 @@ jobs:
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           script: |
             cd ${{ env.DEPLOY_PATH }}/${{ env.GITHUB_REPO }}
-            docker buildx build -t ${{ env.GITHUB_REPO }} .
-            docker container stop ${{ env.GITHUB_REPO }}
-            PORT=${{ secrets.ENV_PORT }} docker run --name ${{ env.GITHUB_REPO }} --rm -d -p ${{ secrets.ENV_PORT }}:${{ secrets.ENV_PORT }} -e PORT ${{ env.GITHUB_REPO }}
+            rm docker.env
+            PORT=${{ secrets.ENV_PORT }}
+            printf "SIMPLE_CHAT_PORT=$PORT" | cat > docker.env
+            cd ..
+            chmod +x combine_env.sh
+            bash combine_env.sh
+            docker-compose up --detach --force-recreate --build --no-deps --remove-orphans ${{ env.GITHUB_REPO }}
+            docker image prune -f
 
       - name: preview-url
         run: |

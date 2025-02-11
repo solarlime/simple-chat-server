@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/solarlime/simple-chat-server#readme",
   "devDependencies": {
-    "esbuild": "^0.21.3",
+    "esbuild": "^0.25.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.29.1",
